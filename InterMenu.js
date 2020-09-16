@@ -1,34 +1,34 @@
-import { TextToContainer } from "/static/js/TextToContainer.js"
+// import { TextToContainer } from "/static/js/TextToContainer.js"
 
 
-// //vraca funkciju koja ne uzima argumente ali ima assignan lineWidth i lineHeight
-// export function TextToContainer(lineWidth,lineHeight) {
-//     return function(){
-//       let text = d3.select(this),
-//       words = text.text().split(/\s+/).reverse(),
-//       word,
-//       line = [],
-//       lineNumber = 0,
-//       // lineHeight = 1.1, // ems
-//       x = text.attr("x"),
-//       y = text.attr("y"),
-//       dy = 1.1,
-//       tspan = text.text(null).append("tspan").attr("x", x).attr("y", y).attr("dy", dy + "em");
-//       while (word = words.pop()) {
-//           line.push(word);
-//           tspan.text(line.join(" "));
-//           if (tspan.node().getComputedTextLength() > lineWidth) { 
-//               line.pop();
-//               tspan.text(line.join(" "));
-//               line = [word];
-//               tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
-//           }
-//       }
-//       // console.log(d3.select(this)['_groups'][0][0].getBoundingClientRect())
-//       let offset = d3.select(this)['_groups'][0][0].getBoundingClientRect();
-//       d3.select(this).attr('transform',`translate(${0},${-offset['height']/2})`);
-//     }
-// }
+//vraca funkciju koja ne uzima argumente ali ima assignan lineWidth i lineHeight
+export function TextToContainer(lineWidth,lineHeight) {
+    return function(){
+      let text = d3.select(this),
+      words = text.text().split(/\s+/).reverse(),
+      word,
+      line = [],
+      lineNumber = 0,
+      // lineHeight = 1.1, // ems
+      x = text.attr("x"),
+      y = text.attr("y"),
+      dy = 1.1,
+      tspan = text.text(null).append("tspan").attr("x", x).attr("y", y).attr("dy", dy + "em");
+      while (word = words.pop()) {
+          line.push(word);
+          tspan.text(line.join(" "));
+          if (tspan.node().getComputedTextLength() > lineWidth) { 
+              line.pop();
+              tspan.text(line.join(" "));
+              line = [word];
+              tspan = text.append("tspan").attr("x", x).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+          }
+      }
+      // console.log(d3.select(this)['_groups'][0][0].getBoundingClientRect())
+      let offset = d3.select(this)['_groups'][0][0].getBoundingClientRect();
+      d3.select(this).attr('transform',`translate(${0},${-offset['height']/2})`);
+    }
+}
 
 
 
@@ -38,138 +38,101 @@ import { TextToContainer } from "/static/js/TextToContainer.js"
 //                    Menu                          \\
 //++++++++++++++++++++++++++++++++++++++++++++++++++\\
 
-export class Graph{
+export class InterMenu{
 
-    constructor(group,opisElem,opisHeaderElem,screenWidth,screenHeight){
-        // this.textData = text; // text list
-        this.group = group; // main group
-        // this.dataIDfieldName = dataIDfieldName; // TODO
+    constructor(group,onClick){
+        this.group = group; 
         this.subGraph = null;
-        this.screenWidth = screenWidth;
-        this.screenHeight = screenHeight;
-        this.offX = 0;
-        this.offY = 0;
         this.hasSubGraf = false;
-        this.opisElem = opisElem;
-        this.opisHeaderElem = opisHeaderElem;
+        // this.opisElem = opisElem;
+        // this.opisHeaderElem = opisHeaderElem;
+        this.onClick = onClick;
+        this.data = null;
+        this.path = null;
     }
 
-    SetContainerStyle(style){ this.style = style; return this;  }// container && path
+    SetContainerStyle(style){ this.style = style; return this;  } // container && path style
 
-    Populate(data){   //vraca selekciju svih podgrupa koje imaju element   NE   
-        // console.log(text);
+    Populate(data){    // data format : array of string
+        console.log('TU Sam')
         //init
         this.Clear();
-        this.textData = data['data'];
-        this.FormatData();
-        this.opisElem.html(data['opis']) 
-        //+ data['data'].toString())
-
-
-        let selection = this.group.selectAll().data(this.data);
+        this.data = data;
+        this.MakePath();
+        console.log(this.path)
+        let selection = this.group.selectAll().data(data);
 
         selection.enter()
             .append('g')
-            .on('click', BindGraphClickEvent(this))
-            .attr('transform',d => { return `translate( ${ d['coord'][0] },${ d['coord'][1] })`});;
+            // .on('click', BindGraphClickEvent(this))
+            .attr('transform',(d,i) => { return `translate( ${ this.path[i][0] },${ this.path[i][1] })`});;
 
         let groups =  this.group.selectAll('g');
 
-        if(this.style.Ctype == 'circle'){
-            this.groups.append('circle')
-                .attr('r',20)
-                .attr('fill',this.style.Cfill)
-                .attr('stroke',this.style.Cstroke)
-                .attr('cx', 0)
-                .attr('cy', 0);
-        }
-        else if( this.style.Ctype == 'rect'){
-            groups.append('rect')
-                .attr('fill',this.style.Cfill)
-                .attr('stroke',this.style.Cstroke)
-                .attr('width',this.style.Cwidth)
-                .attr('height',this.style.Cheight)
-                .attr('x', -this.style.Cwidth/2)
-                .attr('y', -this.style.Cheight/2);
-        }
+        groups.append('circle')
+            .attr('r',20)
+            // .attr('fill',this.style.Cfill)
+            .attr('stroke','green')
+            .attr('cx', 0)
+            .attr('cy', 0);
+        // if(this.style.Ctype == 'circle'){
+        //     this.groups.append('circle')
+        //         .attr('r',20)
+        //         .attr('fill',this.style.Cfill)
+        //         .attr('stroke',this.style.Cstroke)
+        //         .attr('cx', 0)
+        //         .attr('cy', 0);
+        // }
+        // else if( this.style.Ctype == 'rect'){
+        //     groups.append('rect')
+        //         .attr('fill',this.style.Cfill)
+        //         .attr('stroke',this.style.Cstroke)
+        //         .attr('width',this.style.Cwidth)
+        //         .attr('height',this.style.Cheight)
+        //         .attr('x', -this.style.Cwidth/2)
+        //         .attr('y', -this.style.Cheight/2);
+        // }
     
         groups.append('text')
             .attr("x", 0)
             .attr("y",  0)
             .attr("text-anchor", "middle")
             .attr("font-family", "sans-serif")
-            .style("font-size", this.style.fontSize)
-            .text(d=>d['data'])
-            .each(TextToContainer(this.style.Cwidth-5,1.4));   
+            .style("font-size", '1en')
+            .text(d => d)
+            .each(TextToContainer(40-5,1.4));   
     
-        this.TranslateGraphH();
         return this;    
     }
 
     Clear(){
         if(this.hasSubGraf) this.ClearSubGraph();
-        this.opisElem.html('');
+        // this.opisElem.html('');
         this.group.selectAll('g').remove();
         return this; }
+    
+    ClearSubGraph(){ this.subGraph.Clear(); return this;}
+    
+    
+    SetSubGraph(sub){this.hasSubGraf=true; this.subGraph = sub;  return this; }
 
-    // setData(data){ this.data = data; return this;}
-
-    SetupSubGraph(sub){this.hasSubGraf=true; this.subGraph = sub;  return this; }
 
     async PopulateSubGraph(withDataID){
-        // console.log(withDataID);
         let data = await this.DataSourceFun(withDataID);
-        this.opisHeaderElem.html(withDataID)
-        // console.log(data)
+        // this.opisHeaderElem.html(withDataID)
         this.subGraph.Populate(data);
     }
 
-    ClearSubGraph(){ this.subGraph.Clear(); return this;}
 
-    // DataSourceFunction for given textId (just text) return array of text for subgraph 
-    SetDataSource(dsFun){ this.DataSourceFun = dsFun; return this;}
-    
-    FormatData(){
-        let path;
-        if( this.style.Ptype == 'arc') path = SplitArc(this.textData.length,this.style.Prad,this.style.Prad+1);
-        else if( this.style.Ptype == 'linX') path = SplitLineX(this.textData.length,this.style.Plen);
-        else if( this.style.Ptype == 'linY') path = SplitLineY(this.textData.length,this.style.Plen);
-    
-        // console.log(this.style.Ptype)
-        this.data = GraphDataFormat(   
-            this.textData,
-            path
-            );
-        return this;
+    MakePath(){
+        if( true) this.path = SplitArc(this.data.length,40,41);
+        else if(false) this.path = SplitLineX(this.data.length,this.style.Plen);
+        else if( false) this.path = SplitLineY(this.data.length,this.style.Plen);
+        // if( this.style.Ptype == 'arc') this.path = SplitArc(this.data.length,this.style.Prad,this.style.Prad+1);
+        // else if( this.style.Ptype == 'linX') this.path = SplitLineX(this.data.length,this.style.Plen);
+        // else if( this.style.Ptype == 'linY') this.path = SplitLineY(this.data.length,this.style.Plen);
     }
 
-    SetInitTranslateOffsetX(fromPosX){ this.fromPosX = fromPosX; return this;}
-    //TODO
-    SetInitTranslateOffsetY(fromPosY){ this.fromPosY = fromPosY; return this;} 
-    
-    TranslateGraphH(){  
-        if(this.fromPosX == 'topL')      this.CenterGroupTopLeft(this.offX,-this.GetGroupBBox()['height']/2  + this.offY)
-        if(this.fromPosX == 'center')    this.CenterGroupCenter(this.offX,-this.GetGroupBBox()['height']/2  + this.offY) //
-    }
-    
-    CenterGroupCenter(offX=0,offY=0){
-        this.TranslateGroup(
-            this.screenWidth/2   + offX,
-            this.screenHeight/2  + offY
-    )}
-
-    CenterGroupTopLeft(offX=0,offY=0){
-        this.TranslateGroup(
-            0   + offX,
-            this.screenHeight/2 + offY
-    )}
-
-    GetGroupBBox(){ return this.group.node().getBBox(); }
-
-    TranslateGroup(w,h){ this.group.attr('transform',`translate(${w},${h})`);  }
-    
-    SetXoff(offX){ this.offX = offX; return this;}
-    SetYoff(offY){ this.offY = offY; return this;}
 }
 
 
@@ -178,15 +141,14 @@ export class Graph{
 //                Elem Path                         \\
 //++++++++++++++++++++++++++++++++++++++++++++++++++\\
 
-export function GraphDataFormat(text,path){ 
-    let data = []; 
-    text.map((el,i) => { data.push({'data':el,'coord':[path[i][0],path[i][1]] })});
-    return data;
-}
+// export function GraphDataFormat(text,path){ 
+//     let data = []; 
+//     text.map((el,i) => { data.push({'data':el,'coord':[path[i][0],path[i][1]] })});
+//     return data;
+// }
 
-//i< num of sections, rInnner, rOuter
-//o> arr of arcs
-export function SplitArc(n,radius){
+//n - number of sections
+function SplitArc(n,radius){
     let arr = [];
     for(let x = 0; x<n;x++) {
         arr.push(
@@ -201,7 +163,7 @@ export function SplitArc(n,radius){
 }
 
 
-export function SplitLineX(n,len){
+function SplitLineX(n,len){
     let arr = Array.from(Array(n).keys());
     const step = len/n;
     arr = arr.map((el,i)=>{ return [ i*step , 0]; });
@@ -209,19 +171,20 @@ export function SplitLineX(n,len){
     return arr;
 }
 
-export function SplitLineY(n,len){
+function SplitLineY(n,len){
     let arr = Array.from(Array(n).keys());
     const step = len/n;
     arr = arr.map((el,i)=>{ return [ 0 , i*step]; });
     return arr;
 }
 
+
 //++++++++++++++++++++++++++++++++++++++++++++++++++\\
 //                    Click                         \\
 //++++++++++++++++++++++++++++++++++++++++++++++++++\\
 
 function BindGraphClickEvent(graph){
-    return function GraphClick(data,i){
+    return function GraphClick(data){
         const parentG = d3.select(this.parentNode);  
         let isClicked = IsClicked(parentG); //dali je vec kliknut
         let LastNodeClickedID = parentG.attr('NodeClickedID');
